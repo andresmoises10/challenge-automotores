@@ -220,7 +220,7 @@ Organizar frontend y backend en un único repositorio sin herramienta de gestió
 - **Cambios atómicos:** una modificación que impacta frontend y backend queda en un único commit. No hay riesgo de desincronización entre repos.
 - **Configuración centralizada:** `docker-compose.yml`, `.env.example` y scripts de setup viven en la raíz y aplican a todo el sistema desde un único lugar.
 - **Visibilidad de la arquitectura completa:** quien revisa el código ve de un vistazo la separación de responsabilidades, las capas y la relación entre ambas aplicaciones.
-- **Sin overhead de herramientas:** Nx agrega valor real en monorepos con 5+ proyectos, pipelines de CI complejos y equipos grandes. Para 2 proyectos en 48h es puro setup sin retorno.
+- **Sin overhead de herramientas:** No concidero que esta herramienta sea necesaria para el alcance del proyecto que es acotado.
 
 **Por qué se descartó Nx:**
 - El tiempo de configuración de Nx (executors, project graph, cache distribuida) no se recupera en el scope del challenge.
