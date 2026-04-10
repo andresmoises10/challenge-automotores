@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Sujeto, CreateSujetoPayload } from '../../../core/models';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SujetosApiService {
-  private readonly apiUrl = '/api/sujetos';
+  private readonly apiUrl = `${environment.apiUrl}/api/sujetos`;
 
   constructor(private http: HttpClient) {}
 

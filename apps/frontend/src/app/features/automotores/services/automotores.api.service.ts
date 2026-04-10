@@ -7,12 +7,13 @@ import {
   UpdateAutomotorPayload,
   PaginatedAutomotores,
 } from '../../../core/models';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AutomotolesApiService {
-  private readonly apiUrl = '/api/automotores';
+  private readonly apiUrl = `${environment.apiUrl}/api/automotores`;
 
   constructor(private http: HttpClient) {}
 
