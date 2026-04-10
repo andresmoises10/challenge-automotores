@@ -9,21 +9,24 @@ import {
 import { CommonModule } from '@angular/common';
 import {
   ReactiveFormsModule,
+  FormsModule,
   FormBuilder,
   FormGroup,
   Validators,
+  AbstractControl,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { InputNumberModule } from 'primeng/inputnumber';
 import { CardModule } from 'primeng/card';
-import { ToastModule } from 'primeng/toast';
 import { SkeletonModule } from 'primeng/skeleton';
-import { finalize } from 'rxjs/operators';
+import { DialogModule } from 'primeng/dialog';
+import { finalize, switchMap } from 'rxjs/operators';
 
 import { AutomotoresFacadeService } from '../../services/automotores.facade.service';
+import { SujetosApiService } from '../../../sujetos/services/sujetos-api.service';
+import { CreateAutomotorPayload } from '../../../../core/models';
 import {
   cuitValidator,
   dominioValidator,
@@ -36,20 +39,21 @@ import {
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     ButtonModule,
     InputTextModule,
-    InputNumberModule,
     CardModule,
-    ToastModule,
     SkeletonModule,
+    DialogModule,
   ],
-  providers: [MessageService],
+  providers: [],
   templateUrl: './form.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private facade = inject(AutomotoresFacadeService);
+  private sujetosApi = inject(SujetosApiService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private messageService = inject(MessageService);
@@ -59,6 +63,12 @@ export class FormComponent implements OnInit {
   isEditing = signal(false);
   submitting = signal(false);
 
+  // Modal alta de sujeto
+  showSujetoDialog = signal(false);
+  sujetoNombre = '';
+  creandoSujeto = signal(false);
+  private pendingPayload: CreateAutomotorPayload | null = null;
+
   ngOnInit() {
     this.initForm();
     this.checkIfEditing();
@@ -67,13 +77,26 @@ export class FormComponent implements OnInit {
   private initForm() {
     this.form = this.fb.group({
       dominio: ['', [Validators.required, dominioValidator()]],
-      chasis: ['', Validators.required],
-      motor: ['', Validators.required],
-      color: ['', Validators.required],
-      fechaFabricacion: [
+      chasis: [
         '',
-        [Validators.required, fechaFabricacionValidator()],
+        [
+          Validators.required,
+          Validators.minLength(6),
+          Validators.maxLength(20),
+          Validators.pattern(/^[A-Za-z0-9]+$/),
+        ],
       ],
+      motor: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(6),
+          Validators.maxLength(20),
+          Validators.pattern(/^[A-Za-z0-9]+$/),
+        ],
+      ],
+      color: ['', [Validators.required, Validators.maxLength(50)]],
+      fechaFabricacion: ['', [Validators.required, fechaFabricacionValidator()]],
       cuit: ['', [Validators.required, cuitValidator()]],
     });
   }
@@ -84,6 +107,7 @@ export class FormComponent implements OnInit {
       if (dominio) {
         this.isEditing.set(true);
         this.form.get('dominio')?.disable();
+        this.form.get('cuit')?.disable();
         this.loadAutomotor(dominio);
       }
     });
@@ -98,7 +122,7 @@ export class FormComponent implements OnInit {
           motor: automotor.motor,
           color: automotor.color,
           fechaFabricacion: automotor.fechaFabricacion,
-          cuit: automotor.cuit,
+          cuit: automotor.sujeto?.cuit ?? automotor.cuit,
         });
         this.cdr.markForCheck();
       },
@@ -113,16 +137,35 @@ export class FormComponent implements OnInit {
     });
   }
 
+  ctrl(name: string): AbstractControl {
+    return this.form.get(name)!;
+  }
+
+  charCount(name: string): number {
+    return this.ctrl(name).value?.length ?? 0;
+  }
+
   onSubmit() {
     if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.cdr.detectChanges();
       return;
     }
 
     this.submitting.set(true);
     const formValue = this.form.getRawValue();
+    formValue.cuit = formValue.cuit?.replace(/-/g, '');
+    formValue.dominio = formValue.dominio?.toUpperCase().trim();
+
+    this.pendingPayload = formValue;
 
     const operation = this.isEditing()
-      ? this.facade.updateAutomotor(formValue.dominio, formValue)
+      ? this.facade.updateAutomotor(formValue.dominio, {
+          chasis: formValue.chasis,
+          motor: formValue.motor,
+          color: formValue.color,
+          fechaFabricacion: formValue.fechaFabricacion,
+        })
       : this.facade.createAutomotor(formValue);
 
     operation
@@ -146,20 +189,28 @@ export class FormComponent implements OnInit {
   }
 
   private handleFormErrors(error: any) {
-    if (error.fieldErrors) {
+    if (error.code === 'SUJETO_NOT_FOUND') {
+      this.sujetoNombre = '';
+      this.showSujetoDialog.set(true);
+      this.cdr.detectChanges();
+      return;
+    }
+
+    if (error.fieldErrors && Object.keys(error.fieldErrors).length > 0) {
       Object.entries(error.fieldErrors).forEach(([field, message]) => {
         const control = this.form.get(field);
         if (control) {
-          control.setErrors({ server: message });
+          control.setErrors({ server: message as string });
           control.markAsTouched();
         }
       });
 
+      const firstMessage = Object.values(error.fieldErrors)[0] as string;
       this.messageService.add({
         severity: 'error',
-        summary: 'Validación',
-        detail: 'Por favor revisa los campos marcados.',
-        life: 5000,
+        summary: 'Error de validación',
+        detail: firstMessage,
+        life: 6000,
       });
     } else {
       this.messageService.add({
@@ -169,6 +220,7 @@ export class FormComponent implements OnInit {
         life: 5000,
       });
     }
+    this.cdr.detectChanges();
   }
 
   onCancel() {
@@ -179,5 +231,48 @@ export class FormComponent implements OnInit {
     } else {
       this.router.navigate(['/automotores']);
     }
+  }
+
+  onSujetoDialogCancel() {
+    this.showSujetoDialog.set(false);
+    this.pendingPayload = null;
+    this.submitting.set(false);
+  }
+
+  onSujetoDialogConfirm() {
+    if (!this.sujetoNombre.trim() || !this.pendingPayload) return;
+
+    this.creandoSujeto.set(true);
+
+    this.sujetosApi
+      .createSujeto({
+        cuit: this.pendingPayload.cuit,
+        nombre: this.sujetoNombre.trim(),
+        tipo: 'PERSONA_FISICA',
+      })
+      .pipe(
+        switchMap(() => this.facade.createAutomotor(this.pendingPayload!)),
+        finalize(() => {
+          this.creandoSujeto.set(false);
+          this.submitting.set(false);
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.showSujetoDialog.set(false);
+          this.pendingPayload = null;
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Éxito',
+            detail: 'Sujeto creado y automotor registrado correctamente.',
+            life: 4000,
+          });
+          this.router.navigate(['/automotores']);
+        },
+        error: (err) => {
+          this.showSujetoDialog.set(false);
+          this.handleFormErrors(err);
+        },
+      });
   }
 }

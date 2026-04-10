@@ -12,3 +12,12 @@ export interface Automotor {
   createdAt?: string;
   updatedAt?: string;
 }
+
+export interface CreateAutomotorPayload {
+  dominio: string;
+  chasis: string;
+  motor: string;
+  color: string;
+  fechaFabricacion: string;
+  cuit: string;
+}

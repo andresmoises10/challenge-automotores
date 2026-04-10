@@ -24,7 +24,7 @@ services:
       - automotores-network
 
   # ============================================
-  # Backend (NestJS 10)
+  # Backend (NestJS)
   # ============================================
   backend:
     build:
@@ -33,27 +33,25 @@ services:
     container_name: automotores-backend
     environment:
       NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3030
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_USER: ${DB_USER:-postgres}
+      DB_USERNAME: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       DB_NAME: ${DB_NAME:-automotores_db}
-      API_PORT: 3000
-      API_URL: http://localhost:3000
     ports:
-      - "3000:3000"
+      - "3030:3030"
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
       - ./apps/backend/src:/app/src
-      - ./apps/backend/node_modules:/app/node_modules
-    command: npm run start:dev
+      - backend_modules:/app/node_modules
     networks:
       - automotores-network
 
   # ============================================
-  # Frontend (Angular 20)
+  # Frontend (Angular)
   # ============================================
   frontend:
     build:
@@ -61,16 +59,14 @@ services:
       dockerfile: Dockerfile
     container_name: automotores-frontend
     environment:
-      NODE_ENV: ${NODE_ENV:-development}
-      ANGULAR_API_URL: ${ANGULAR_API_URL:-http://localhost:3000/api}
+      API_TARGET: http://backend:3030
     ports:
       - "4200:4200"
     depends_on:
       - backend
     volumes:
       - ./apps/frontend/src:/app/src
-      - ./apps/frontend/node_modules:/app/node_modules
-    command: npm start
+      - frontend_modules:/app/node_modules
     networks:
       - automotores-network
 
@@ -80,4 +76,8 @@ networks:
 
 volumes:
   postgres_data:
+    driver: local
+  backend_modules:
+    driver: local
+  frontend_modules:
     driver: local

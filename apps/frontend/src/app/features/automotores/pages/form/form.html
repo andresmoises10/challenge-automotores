@@ -1,15 +1,35 @@
 <div class="p-6 max-w-2xl mx-auto">
-  <h1 class="text-3xl font-bold text-gray-900 mb-6">
+
+  <!-- Back button -->
+  <div class="mb-4">
+    <button
+      pButton
+      type="button"
+      icon="pi pi-arrow-left"
+      label="Volver"
+      class="p-button-text p-button-secondary"
+      aria-label="Volver a lista de automotores"
+      (click)="onCancel()"
+    ></button>
+  </div>
+
+  <h1 id="form-title" class="text-3xl font-bold text-gray-900 mb-6">
     {{ isEditing() ? 'Editar Automotor' : 'Crear Automotor' }}
   </h1>
 
   <p-card>
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-6">
+    <form
+      [formGroup]="form"
+      (ngSubmit)="onSubmit()"
+      class="space-y-6"
+      novalidate
+      aria-labelledby="form-title"
+    >
 
       <!-- Dominio -->
       <div>
-        <label for="dominio" class="block text-sm font-medium text-gray-700 mb-2">
-          Dominio *
+        <label for="dominio" class="block text-sm font-medium text-gray-700 mb-1">
+          Dominio <span aria-hidden="true">*</span>
         </label>
         <input
           pInputText
@@ -18,100 +38,156 @@
           formControlName="dominio"
           placeholder="AAA999 o AA999AA"
           class="w-full"
-          [class.ng-invalid]="form.get('dominio')?.invalid && form.get('dominio')?.touched"
-          [attr.aria-label]="'Dominio'"
-          [attr.disabled]="isEditing() ? '' : null"
+          [class.ng-invalid]="ctrl('dominio').invalid && ctrl('dominio').touched"
+          aria-required="true"
+          [attr.aria-invalid]="ctrl('dominio').invalid && ctrl('dominio').touched ? 'true' : null"
+          aria-describedby="dominio-hint dominio-error"
         />
-        <p
-          *ngIf="form.get('dominio')?.hasError('required') && form.get('dominio')?.touched"
-          class="mt-1 text-sm text-red-600"
-        >
-          El dominio es requerido.
+        <p id="dominio-hint" class="mt-1 text-xs text-gray-500">
+          Formato: 3 letras + 3 números (AAA999) o 2 letras + 3 números + 2 letras (AA999AA). Máx 7 caracteres.
         </p>
-        <p
-          *ngIf="form.get('dominio')?.hasError('invalidDominio') && form.get('dominio')?.touched"
-          class="mt-1 text-sm text-red-600"
-        >
-          Formato inválido. Usa AAA999 o AA999AA.
-        </p>
-        <p
-          *ngIf="form.get('dominio')?.hasError('server') && form.get('dominio')?.touched"
-          class="mt-1 text-sm text-red-600"
-        >
-          {{ form.get('dominio')?.errors?.['server'] }}
-        </p>
+        @if (ctrl('dominio').touched) {
+          <div id="dominio-error" aria-live="polite" aria-atomic="true">
+            @if (ctrl('dominio').hasError('required')) {
+              <p role="alert" class="mt-1 text-sm text-red-600">El dominio es requerido.</p>
+            }
+            @if (ctrl('dominio').hasError('invalidDominio')) {
+              <p role="alert" class="mt-1 text-sm text-red-600">Formato inválido. Usa AAA999 o AA999AA.</p>
+            }
+            @if (ctrl('dominio').hasError('server')) {
+              <p role="alert" class="mt-1 text-sm text-red-600">{{ ctrl('dominio').errors?.['server'] }}</p>
+            }
+          </div>
+        }
       </div>
 
       <!-- Chasis -->
       <div>
-        <label for="chasis" class="block text-sm font-medium text-gray-700 mb-2">
-          Chasis *
+        <label for="chasis" class="block text-sm font-medium text-gray-700 mb-1">
+          Chasis <span aria-hidden="true">*</span>
         </label>
         <input
           pInputText
           id="chasis"
           type="text"
           formControlName="chasis"
-          placeholder="Número de chasis"
+          placeholder="Ej: ABC123DEF"
+          maxlength="20"
           class="w-full"
-          [class.ng-invalid]="form.get('chasis')?.invalid && form.get('chasis')?.touched"
+          [class.ng-invalid]="ctrl('chasis').invalid && ctrl('chasis').touched"
+          aria-required="true"
+          [attr.aria-invalid]="ctrl('chasis').invalid && ctrl('chasis').touched ? 'true' : null"
+          aria-describedby="chasis-hint chasis-error chasis-count"
         />
-        <p
-          *ngIf="form.get('chasis')?.hasError('required') && form.get('chasis')?.touched"
-          class="mt-1 text-sm text-red-600"
-        >
-          El chasis es requerido.
-        </p>
+        <div class="flex justify-between mt-1">
+          <p id="chasis-hint" class="text-xs text-gray-500">Solo letras y números. Entre 6 y 20 caracteres.</p>
+          <span id="chasis-count" class="text-xs text-gray-400" aria-live="polite">{{ charCount('chasis') }}/20</span>
+        </div>
+        @if (ctrl('chasis').touched) {
+          <div id="chasis-error" aria-live="polite" aria-atomic="true">
+            @if (ctrl('chasis').hasError('required')) {
+              <p role="alert" class="mt-1 text-sm text-red-600">El chasis es requerido.</p>
+            }
+            @if (ctrl('chasis').hasError('minlength')) {
+              <p role="alert" class="mt-1 text-sm text-red-600">Mínimo 6 caracteres.</p>
+            }
+            @if (ctrl('chasis').hasError('maxlength')) {
+              <p role="alert" class="mt-1 text-sm text-red-600">Máximo 20 caracteres.</p>
+            }
+            @if (ctrl('chasis').hasError('pattern')) {
+              <p role="alert" class="mt-1 text-sm text-red-600">Solo se permiten letras y números.</p>
+            }
+            @if (ctrl('chasis').hasError('server')) {
+              <p role="alert" class="mt-1 text-sm text-red-600">{{ ctrl('chasis').errors?.['server'] }}</p>
+            }
+          </div>
+        }
       </div>
 
       <!-- Motor -->
       <div>
-        <label for="motor" class="block text-sm font-medium text-gray-700 mb-2">
-          Motor *
+        <label for="motor" class="block text-sm font-medium text-gray-700 mb-1">
+          Motor <span aria-hidden="true">*</span>
         </label>
         <input
           pInputText
           id="motor"
           type="text"
           formControlName="motor"
-          placeholder="Número de motor"
+          placeholder="Ej: MOT456GHI"
+          maxlength="20"
           class="w-full"
-          [class.ng-invalid]="form.get('motor')?.invalid && form.get('motor')?.touched"
+          [class.ng-invalid]="ctrl('motor').invalid && ctrl('motor').touched"
+          aria-required="true"
+          [attr.aria-invalid]="ctrl('motor').invalid && ctrl('motor').touched ? 'true' : null"
+          aria-describedby="motor-hint motor-error motor-count"
         />
-        <p
-          *ngIf="form.get('motor')?.hasError('required') && form.get('motor')?.touched"
-          class="mt-1 text-sm text-red-600"
-        >
-          El motor es requerido.
-        </p>
+        <div class="flex justify-between mt-1">
+          <p id="motor-hint" class="text-xs text-gray-500">Solo letras y números. Entre 6 y 20 caracteres.</p>
+          <span id="motor-count" class="text-xs text-gray-400" aria-live="polite">{{ charCount('motor') }}/20</span>
+        </div>
+        @if (ctrl('motor').touched) {
+          <div id="motor-error" aria-live="polite" aria-atomic="true">
+            @if (ctrl('motor').hasError('required')) {
+              <p role="alert" class="mt-1 text-sm text-red-600">El motor es requerido.</p>
+            }
+            @if (ctrl('motor').hasError('minlength')) {
+              <p role="alert" class="mt-1 text-sm text-red-600">Mínimo 6 caracteres.</p>
+            }
+            @if (ctrl('motor').hasError('maxlength')) {
+              <p role="alert" class="mt-1 text-sm text-red-600">Máximo 20 caracteres.</p>
+            }
+            @if (ctrl('motor').hasError('pattern')) {
+              <p role="alert" class="mt-1 text-sm text-red-600">Solo se permiten letras y números.</p>
+            }
+            @if (ctrl('motor').hasError('server')) {
+              <p role="alert" class="mt-1 text-sm text-red-600">{{ ctrl('motor').errors?.['server'] }}</p>
+            }
+          </div>
+        }
       </div>
 
       <!-- Color -->
       <div>
-        <label for="color" class="block text-sm font-medium text-gray-700 mb-2">
-          Color *
+        <label for="color" class="block text-sm font-medium text-gray-700 mb-1">
+          Color <span aria-hidden="true">*</span>
         </label>
         <input
           pInputText
           id="color"
           type="text"
           formControlName="color"
-          placeholder="Color del vehículo"
+          placeholder="Ej: Blanco, Negro, Rojo metalizado"
+          maxlength="50"
           class="w-full"
-          [class.ng-invalid]="form.get('color')?.invalid && form.get('color')?.touched"
+          [class.ng-invalid]="ctrl('color').invalid && ctrl('color').touched"
+          aria-required="true"
+          [attr.aria-invalid]="ctrl('color').invalid && ctrl('color').touched ? 'true' : null"
+          aria-describedby="color-hint color-error color-count"
         />
-        <p
-          *ngIf="form.get('color')?.hasError('required') && form.get('color')?.touched"
-          class="mt-1 text-sm text-red-600"
-        >
-          El color es requerido.
-        </p>
+        <div class="flex justify-between mt-1">
+          <p id="color-hint" class="text-xs text-gray-500">Descripción del color. Máx 50 caracteres.</p>
+          <span id="color-count" class="text-xs text-gray-400" aria-live="polite">{{ charCount('color') }}/50</span>
+        </div>
+        @if (ctrl('color').touched) {
+          <div id="color-error" aria-live="polite" aria-atomic="true">
+            @if (ctrl('color').hasError('required')) {
+              <p role="alert" class="mt-1 text-sm text-red-600">El color es requerido.</p>
+            }
+            @if (ctrl('color').hasError('maxlength')) {
+              <p role="alert" class="mt-1 text-sm text-red-600">Máximo 50 caracteres.</p>
+            }
+            @if (ctrl('color').hasError('server')) {
+              <p role="alert" class="mt-1 text-sm text-red-600">{{ ctrl('color').errors?.['server'] }}</p>
+            }
+          </div>
+        }
       </div>
 
       <!-- Fecha Fabricación -->
       <div>
-        <label for="fechaFabricacion" class="block text-sm font-medium text-gray-700 mb-2">
-          Fecha Fabricación (YYYYMM) *
+        <label for="fechaFabricacion" class="block text-sm font-medium text-gray-700 mb-1">
+          Fecha de Fabricación <span aria-hidden="true">*</span>
         </label>
         <input
           pInputText
@@ -121,75 +197,156 @@
           placeholder="202401"
           maxlength="6"
           class="w-full"
-          [class.ng-invalid]="form.get('fechaFabricacion')?.invalid && form.get('fechaFabricacion')?.touched"
+          [class.ng-invalid]="ctrl('fechaFabricacion').invalid && ctrl('fechaFabricacion').touched"
+          aria-required="true"
+          [attr.aria-invalid]="ctrl('fechaFabricacion').invalid && ctrl('fechaFabricacion').touched ? 'true' : null"
+          aria-describedby="fecha-hint fecha-error"
         />
-        <p
-          *ngIf="form.get('fechaFabricacion')?.hasError('required') && form.get('fechaFabricacion')?.touched"
-          class="mt-1 text-sm text-red-600"
-        >
-          La fecha es requerida.
+        <p id="fecha-hint" class="mt-1 text-xs text-gray-500">
+          Formato YYYYMM — año y mes (ej: 202401 = enero 2024). No puede ser fecha futura.
         </p>
-        <p
-          *ngIf="form.get('fechaFabricacion')?.hasError('invalidFechaFabricacion') && form.get('fechaFabricacion')?.touched"
-          class="mt-1 text-sm text-red-600"
-        >
-          Formato inválido. Usa YYYYMM (ej: 202401).
-        </p>
+        @if (ctrl('fechaFabricacion').touched) {
+          <div id="fecha-error" aria-live="polite" aria-atomic="true">
+            @if (ctrl('fechaFabricacion').hasError('required')) {
+              <p role="alert" class="mt-1 text-sm text-red-600">La fecha de fabricación es requerida.</p>
+            }
+            @if (ctrl('fechaFabricacion').hasError('invalidFechaFabricacion')) {
+              <p role="alert" class="mt-1 text-sm text-red-600">Formato inválido. Usa YYYYMM (ej: 202401). No puede ser fecha futura.</p>
+            }
+            @if (ctrl('fechaFabricacion').hasError('server')) {
+              <p role="alert" class="mt-1 text-sm text-red-600">{{ ctrl('fechaFabricacion').errors?.['server'] }}</p>
+            }
+          </div>
+        }
       </div>
 
       <!-- CUIT -->
       <div>
-        <label for="cuit" class="block text-sm font-medium text-gray-700 mb-2">
-          CUIT Dueño *
+        <label for="cuit" class="block text-sm font-medium text-gray-700 mb-1">
+          CUIT del Propietario <span aria-hidden="true">*</span>
         </label>
         <input
           pInputText
           id="cuit"
           type="text"
           formControlName="cuit"
-          placeholder="20-12345678-9"
+          placeholder="20123456789"
+          maxlength="11"
           class="w-full"
-          [class.ng-invalid]="form.get('cuit')?.invalid && form.get('cuit')?.touched"
+          [class.ng-invalid]="ctrl('cuit').invalid && ctrl('cuit').touched"
+          aria-required="true"
+          [attr.aria-invalid]="ctrl('cuit').invalid && ctrl('cuit').touched ? 'true' : null"
+          aria-describedby="cuit-hint cuit-error"
         />
-        <p
-          *ngIf="form.get('cuit')?.hasError('required') && form.get('cuit')?.touched"
-          class="mt-1 text-sm text-red-600"
-        >
-          El CUIT es requerido.
+        <p id="cuit-hint" class="mt-1 text-xs text-gray-500">
+          11 dígitos sin guiones (ej: 20123456789). Debe existir como sujeto registrado.
         </p>
-        <p
-          *ngIf="form.get('cuit')?.hasError('invalidCuit') && form.get('cuit')?.touched"
-          class="mt-1 text-sm text-red-600"
-        >
-          CUIT inválido. Verifica el formato y el dígito verificador.
-        </p>
-        <p
-          *ngIf="form.get('cuit')?.hasError('server') && form.get('cuit')?.touched"
-          class="mt-1 text-sm text-red-600"
-        >
-          {{ form.get('cuit')?.errors?.['server'] }}
-        </p>
+        @if (ctrl('cuit').touched) {
+          <div id="cuit-error" aria-live="polite" aria-atomic="true">
+            @if (ctrl('cuit').hasError('required')) {
+              <p role="alert" class="mt-1 text-sm text-red-600">El CUIT es requerido.</p>
+            }
+            @if (ctrl('cuit').hasError('invalidCuit')) {
+              <p role="alert" class="mt-1 text-sm text-red-600">CUIT inválido. Verifica el formato (11 dígitos) y el dígito verificador.</p>
+            }
+            @if (ctrl('cuit').hasError('server')) {
+              <p role="alert" class="mt-1 text-sm text-red-600">{{ ctrl('cuit').errors?.['server'] }}</p>
+            }
+          </div>
+        }
       </div>
 
       <!-- Botones -->
-      <div class="flex gap-4 pt-6">
+      <div class="flex gap-4 pt-4">
         <button
           pButton
           type="submit"
           [label]="isEditing() ? 'Actualizar' : 'Crear'"
+          [icon]="isEditing() ? 'pi pi-check' : 'pi pi-plus'"
           class="p-button-success"
-          [disabled]="form.invalid || submitting()"
+          [disabled]="submitting()"
           [loading]="submitting()"
+          [attr.aria-disabled]="submitting() ? 'true' : null"
         ></button>
         <button
           pButton
           type="button"
           label="Cancelar"
-          class="p-button-secondary"
+          icon="pi pi-times"
+          class="p-button-outlined p-button-secondary"
           (click)="onCancel()"
+          [disabled]="submitting()"
+          [attr.aria-disabled]="submitting() ? 'true' : null"
         ></button>
       </div>
 
     </form>
   </p-card>
+
 </div>
+
+<!-- Modal: Crear Sujeto -->
+<p-dialog
+  [visible]="showSujetoDialog()"
+  (visibleChange)="showSujetoDialog.set($event)"
+  [modal]="true"
+  [closable]="false"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="w-full max-w-md"
+  aria-labelledby="sujeto-dialog-title"
+  aria-describedby="sujeto-dialog-desc"
+>
+  <ng-template pTemplate="header">
+    <span id="sujeto-dialog-title" class="text-lg font-semibold">Propietario no encontrado</span>
+  </ng-template>
+
+  <div class="space-y-4 py-2">
+    <p id="sujeto-dialog-desc" class="text-gray-700">
+      El CUIT ingresado no está registrado en el sistema. ¿Deseas darlo de alta como nuevo propietario?
+    </p>
+
+    <div>
+      <label for="sujeto-nombre" class="block text-sm font-medium text-gray-700 mb-1">
+        Nombre del propietario <span aria-hidden="true">*</span>
+      </label>
+      <input
+        pInputText
+        id="sujeto-nombre"
+        type="text"
+        [(ngModel)]="sujetoNombre"
+        placeholder="Ej: Juan Pérez / Empresa S.A."
+        maxlength="100"
+        class="w-full"
+        aria-required="true"
+        aria-describedby="sujeto-nombre-hint"
+      />
+      <p id="sujeto-nombre-hint" class="mt-1 text-xs text-gray-500">
+        Nombre completo de la persona física o razón social de la empresa.
+      </p>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex gap-2 justify-end">
+      <button
+        pButton
+        type="button"
+        label="Cancelar"
+        class="p-button-outlined p-button-secondary"
+        (click)="onSujetoDialogCancel()"
+        [disabled]="creandoSujeto()"
+      ></button>
+      <button
+        pButton
+        type="button"
+        label="Crear y continuar"
+        icon="pi pi-user-plus"
+        class="p-button-success"
+        (click)="onSujetoDialogConfirm()"
+        [disabled]="!sujetoNombre.trim() || creandoSujeto()"
+        [loading]="creandoSujeto()"
+      ></button>
+    </div>
+  </ng-template>
+</p-dialog>

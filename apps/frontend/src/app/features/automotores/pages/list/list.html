@@ -1,0 +1,150 @@
+<div class="p-6">
+
+  <p-confirmDialog />
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-3xl font-bold text-gray-900" id="page-title">Automotores</h1>
+    <button
+      pButton
+      type="button"
+      label="Nuevo automotor"
+      icon="pi pi-plus"
+      class="p-button-success"
+      aria-label="Crear nuevo automotor"
+      (click)="onNew()"
+    ></button>
+  </div>
+
+  <!-- Search -->
+  <div class="mb-4 flex gap-2" role="search">
+    <span class="p-input-icon-left flex-1">
+      <i class="pi pi-search" aria-hidden="true"></i>
+      <input
+        #searchInput
+        pInputText
+        id="search-automotores"
+        type="search"
+        (input)="dt.filterGlobal(searchInput.value, 'contains')"
+        placeholder="Buscar por dominio, CUIT o color..."
+        aria-label="Buscar automotores por dominio, CUIT o color"
+        aria-controls="automotores-table"
+        class="w-full"
+      />
+    </span>
+    @if (searchInput.value) {
+      <button
+        pButton
+        type="button"
+        icon="pi pi-times"
+        class="p-button-outlined p-button-secondary"
+        aria-label="Limpiar búsqueda"
+        (click)="searchInput.value = ''; dt.filterGlobal('', 'contains')"
+      ></button>
+    }
+  </div>
+
+  <!-- Error -->
+  @if (error()) {
+    <div
+      class="mb-4 p-4 bg-red-50 border border-red-200 rounded text-red-700"
+      role="alert"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      {{ error()?.userMessage || 'Error al cargar los automotores.' }}
+    </div>
+  }
+
+  <!-- Table -->
+  <p-card>
+    <p-table
+      #dt
+      id="automotores-table"
+      [value]="automotores()"
+      [loading]="loading()"
+      [attr.aria-busy]="loading()"
+      aria-label="Lista de automotores registrados"
+      aria-labelledby="page-title"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[5, 10, 25]"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} automotores"
+      [globalFilterFields]="['dominio', 'color']"
+      styleClass="p-datatable-striped"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="dominio" scope="col">Dominio <p-sortIcon field="dominio" /></th>
+          <th scope="col">Propietario (CUIT)</th>
+          <th pSortableColumn="color" scope="col">Color <p-sortIcon field="color" /></th>
+          <th pSortableColumn="fechaFabricacion" scope="col">Fabricación <p-sortIcon field="fechaFabricacion" /></th>
+          <th pSortableColumn="chasis" scope="col">Chasis <p-sortIcon field="chasis" /></th>
+          <th pSortableColumn="motor" scope="col">Motor <p-sortIcon field="motor" /></th>
+          <th class="text-center" scope="col">Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-automotor>
+        <tr>
+          <td>
+            <span class="font-mono font-semibold text-blue-700">{{ automotor.dominio }}</span>
+          </td>
+          <td>
+            @if (automotor.sujeto) {
+              <div>
+                <div class="font-medium">{{ automotor.sujeto.nombre }}</div>
+                <div class="text-sm text-gray-500">{{ automotor.sujeto.cuit }}</div>
+              </div>
+            } @else {
+              <span class="text-gray-400 text-sm">{{ automotor.cuit }}</span>
+            }
+          </td>
+          <td>{{ automotor.color }}</td>
+          <td>
+            <span class="font-mono">{{ automotor.fechaFabricacion }}</span>
+          </td>
+          <td><span class="font-mono text-sm">{{ automotor.chasis }}</span></td>
+          <td><span class="font-mono text-sm">{{ automotor.motor }}</span></td>
+          <td>
+            <div class="flex gap-2 justify-center">
+              <button
+                pButton
+                type="button"
+                icon="pi pi-pencil"
+                class="p-button-rounded p-button-text p-button-info"
+                pTooltip="Editar"
+                [attr.aria-label]="'Editar automotor ' + automotor.dominio"
+                (click)="onEdit(automotor)"
+              ></button>
+              <button
+                pButton
+                type="button"
+                icon="pi pi-trash"
+                class="p-button-rounded p-button-text p-button-danger"
+                pTooltip="Eliminar"
+                [attr.aria-label]="'Eliminar automotor ' + automotor.dominio"
+                (click)="onDelete(automotor)"
+              ></button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7" class="text-center py-8 text-gray-500">
+            @if (loading()) {
+              <span aria-live="polite">Cargando automotores...</span>
+            } @else {
+              No hay automotores registrados.
+              <button pButton type="button" label="Crear el primero" class="p-button-link" (click)="onNew()"></button>
+            }
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+
+</div>
