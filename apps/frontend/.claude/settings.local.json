@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm start:*)",
+      "Bash(npm info:*)",
+      "Bash(node:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx ng:*)",
+      "Bash(node -e \"require\\(''''primeng/themes/aura''''\\)\")",
+      "Bash(head -3 node -e \"const c = require\\(''''./node_modules/primeng/config''''\\); console.log\\(Object.keys\\(c\\).slice\\(0,10\\)\\)\")",
+      "Bash(find /c/Users/andre/OneDrive/Escritorio/challenge/challenge-automotores/apps/frontend/node_modules/primeng -name aura* -o -name lara* -o -name nora*)",
+      "Bash(npm install:*)"
+    ]
+  }
+}

@@ -1,0 +1,195 @@
+<div class="p-6 max-w-2xl mx-auto">
+  <h1 class="text-3xl font-bold text-gray-900 mb-6">
+    {{ isEditing() ? 'Editar Automotor' : 'Crear Automotor' }}
+  </h1>
+
+  <p-card>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-6">
+
+      <!-- Dominio -->
+      <div>
+        <label for="dominio" class="block text-sm font-medium text-gray-700 mb-2">
+          Dominio *
+        </label>
+        <input
+          pInputText
+          id="dominio"
+          type="text"
+          formControlName="dominio"
+          placeholder="AAA999 o AA999AA"
+          class="w-full"
+          [class.ng-invalid]="form.get('dominio')?.invalid && form.get('dominio')?.touched"
+          [attr.aria-label]="'Dominio'"
+          [attr.disabled]="isEditing() ? '' : null"
+        />
+        <p
+          *ngIf="form.get('dominio')?.hasError('required') && form.get('dominio')?.touched"
+          class="mt-1 text-sm text-red-600"
+        >
+          El dominio es requerido.
+        </p>
+        <p
+          *ngIf="form.get('dominio')?.hasError('invalidDominio') && form.get('dominio')?.touched"
+          class="mt-1 text-sm text-red-600"
+        >
+          Formato inválido. Usa AAA999 o AA999AA.
+        </p>
+        <p
+          *ngIf="form.get('dominio')?.hasError('server') && form.get('dominio')?.touched"
+          class="mt-1 text-sm text-red-600"
+        >
+          {{ form.get('dominio')?.errors?.['server'] }}
+        </p>
+      </div>
+
+      <!-- Chasis -->
+      <div>
+        <label for="chasis" class="block text-sm font-medium text-gray-700 mb-2">
+          Chasis *
+        </label>
+        <input
+          pInputText
+          id="chasis"
+          type="text"
+          formControlName="chasis"
+          placeholder="Número de chasis"
+          class="w-full"
+          [class.ng-invalid]="form.get('chasis')?.invalid && form.get('chasis')?.touched"
+        />
+        <p
+          *ngIf="form.get('chasis')?.hasError('required') && form.get('chasis')?.touched"
+          class="mt-1 text-sm text-red-600"
+        >
+          El chasis es requerido.
+        </p>
+      </div>
+
+      <!-- Motor -->
+      <div>
+        <label for="motor" class="block text-sm font-medium text-gray-700 mb-2">
+          Motor *
+        </label>
+        <input
+          pInputText
+          id="motor"
+          type="text"
+          formControlName="motor"
+          placeholder="Número de motor"
+          class="w-full"
+          [class.ng-invalid]="form.get('motor')?.invalid && form.get('motor')?.touched"
+        />
+        <p
+          *ngIf="form.get('motor')?.hasError('required') && form.get('motor')?.touched"
+          class="mt-1 text-sm text-red-600"
+        >
+          El motor es requerido.
+        </p>
+      </div>
+
+      <!-- Color -->
+      <div>
+        <label for="color" class="block text-sm font-medium text-gray-700 mb-2">
+          Color *
+        </label>
+        <input
+          pInputText
+          id="color"
+          type="text"
+          formControlName="color"
+          placeholder="Color del vehículo"
+          class="w-full"
+          [class.ng-invalid]="form.get('color')?.invalid && form.get('color')?.touched"
+        />
+        <p
+          *ngIf="form.get('color')?.hasError('required') && form.get('color')?.touched"
+          class="mt-1 text-sm text-red-600"
+        >
+          El color es requerido.
+        </p>
+      </div>
+
+      <!-- Fecha Fabricación -->
+      <div>
+        <label for="fechaFabricacion" class="block text-sm font-medium text-gray-700 mb-2">
+          Fecha Fabricación (YYYYMM) *
+        </label>
+        <input
+          pInputText
+          id="fechaFabricacion"
+          type="text"
+          formControlName="fechaFabricacion"
+          placeholder="202401"
+          maxlength="6"
+          class="w-full"
+          [class.ng-invalid]="form.get('fechaFabricacion')?.invalid && form.get('fechaFabricacion')?.touched"
+        />
+        <p
+          *ngIf="form.get('fechaFabricacion')?.hasError('required') && form.get('fechaFabricacion')?.touched"
+          class="mt-1 text-sm text-red-600"
+        >
+          La fecha es requerida.
+        </p>
+        <p
+          *ngIf="form.get('fechaFabricacion')?.hasError('invalidFechaFabricacion') && form.get('fechaFabricacion')?.touched"
+          class="mt-1 text-sm text-red-600"
+        >
+          Formato inválido. Usa YYYYMM (ej: 202401).
+        </p>
+      </div>
+
+      <!-- CUIT -->
+      <div>
+        <label for="cuit" class="block text-sm font-medium text-gray-700 mb-2">
+          CUIT Dueño *
+        </label>
+        <input
+          pInputText
+          id="cuit"
+          type="text"
+          formControlName="cuit"
+          placeholder="20-12345678-9"
+          class="w-full"
+          [class.ng-invalid]="form.get('cuit')?.invalid && form.get('cuit')?.touched"
+        />
+        <p
+          *ngIf="form.get('cuit')?.hasError('required') && form.get('cuit')?.touched"
+          class="mt-1 text-sm text-red-600"
+        >
+          El CUIT es requerido.
+        </p>
+        <p
+          *ngIf="form.get('cuit')?.hasError('invalidCuit') && form.get('cuit')?.touched"
+          class="mt-1 text-sm text-red-600"
+        >
+          CUIT inválido. Verifica el formato y el dígito verificador.
+        </p>
+        <p
+          *ngIf="form.get('cuit')?.hasError('server') && form.get('cuit')?.touched"
+          class="mt-1 text-sm text-red-600"
+        >
+          {{ form.get('cuit')?.errors?.['server'] }}
+        </p>
+      </div>
+
+      <!-- Botones -->
+      <div class="flex gap-4 pt-6">
+        <button
+          pButton
+          type="submit"
+          [label]="isEditing() ? 'Actualizar' : 'Crear'"
+          class="p-button-success"
+          [disabled]="form.invalid || submitting()"
+          [loading]="submitting()"
+        ></button>
+        <button
+          pButton
+          type="button"
+          label="Cancelar"
+          class="p-button-secondary"
+          (click)="onCancel()"
+        ></button>
+      </div>
+
+    </form>
+  </p-card>
+</div>
