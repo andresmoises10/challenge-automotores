@@ -30,7 +30,7 @@ Usar PrimeNG 20 como librería de componentes UI.
 - Componentes production-ready para el scope: `p-table`, `p-dialog`, `p-skeleton`, `p-inputtext`, `p-button`.
 - A11y integrada (WCAG 2.1 AA) sin configuración adicional.
 - API de theming compatible con Tailwind sin conflictos CSS mayores.
-- Mejor ROI en 72h vs construir componentes custom o configurar Material.
+- Mejor ROI en 48h vs construir componentes custom o configurar Material.
 
 ### Trade-offs
 - Bundle size: +180KB. Mitigado con lazy loading y tree-shaking de Angular 20.
@@ -100,12 +100,12 @@ Usar Reactive Forms en todos los formularios del proyecto.
 
 ---
 
-## DECISIÓN 6: Backend — NestJS 10 LTS
+## DECISIÓN 6: Backend — NestJS 11 LTS
 
 **Estado:** ✅ Aceptada
 
 ### Decisión
-Usar NestJS 10 LTS como framework backend.
+Usar NestJS 11 LTS como framework backend.
 
 ### Justificación
 - Estructura opinionada (módulos, controllers, services) que acelera el desarrollo sin decisiones de arquitectura adicionales. Se optó por un flujo de trabajo orientado al frontend sin descuidar las características de construcción de API.
@@ -143,7 +143,7 @@ Levantar el sistema con Docker Compose con tres servicios: `frontend`, `backend`
 | Servicio | Imagen | Puerto |
 |---|---|---|
 | `frontend` | `nginx:alpine` | 4200 |
-| `backend` | `node:20-alpine` | PORT |
+| `backend` | `node:20-alpine` | 3030 |
 | `db` | `postgres:16-alpine` | 5432 |
 
 ### Justificación
@@ -194,7 +194,7 @@ Jest para unit/integration en backend. Jasmine/Karma para unit en frontend. Play
 ### Justificación
 - Validators como funciones puras: testables sin Angular TestBed ni DOM.
 - Repository mockeado en service tests: lógica de negocio sin DB real.
-- 1 flujo E2E: el alta de automotor es el camino crítico. El ROI de cobertura E2E completa no se justifica en 72h.
+- 1 flujo E2E: el alta de automotor es el camino crítico. El ROI de cobertura E2E completa no se justifica en 48h.
 - Playwright sobre Cypress: API moderna, soporte nativo Angular, más rápido en CI.
 
 ---
@@ -210,7 +210,7 @@ Organizar frontend y backend en un único repositorio sin herramienta de gestió
 ```
 /
 ├── frontend/    # Angular 20
-├── backend/     # NestJS 10
+├── backend/     # NestJS 11
 ├── docker-compose.yml
 └── .env.example
 ```
@@ -222,7 +222,7 @@ Organizar frontend y backend en un único repositorio sin herramienta de gestió
 - **Cambios atómicos:** una modificación que impacta frontend y backend queda en un único commit. No hay riesgo de desincronización entre repos.
 - **Configuración centralizada:** `docker-compose.yml`, `.env.example` y scripts de setup viven en la raíz y aplican a todo el sistema desde un único lugar.
 - **Visibilidad de la arquitectura completa:** quien revisa el código ve de un vistazo la separación de responsabilidades, las capas y la relación entre ambas aplicaciones.
-- **Sin overhead de herramientas:** Nx agrega valor real en monorepos con 5+ proyectos, pipelines de CI complejos y equipos grandes. Para 2 proyectos en 72h es puro setup sin retorno.
+- **Sin overhead de herramientas:** Nx agrega valor real en monorepos con 5+ proyectos, pipelines de CI complejos y equipos grandes. Para 2 proyectos en 48h es puro setup sin retorno.
 
 **Por qué se descartó Nx:**
 - El tiempo de configuración de Nx (executors, project graph, cache distribuida) no se recupera en el scope del challenge.
@@ -257,6 +257,125 @@ Esta es la ventaja real de un monorepo con workspace: no solo tener el código j
 
 ---
 
+## DECISIÓN 12: API Documentation — Swagger / OpenAPI
+
+**Estado:** ✅ Aceptada
+**Alternativas evaluadas:** Postman collection, sin documentación
+
+### Decisión
+Integrar Swagger (OpenAPI 3.0) via `@nestjs/swagger` en el backend, accesible en `/api/docs`.
+
+### Justificación
+- El contrato de API es visible e interactuable desde el browser sin herramientas externas. Cualquier persona que revise el proyecto puede probar los endpoints sin instalar Postman ni conocer la estructura de requests de antemano.
+- Los decoradores de Swagger (`@ApiProperty`, `@ApiResponse`) son colocados sobre los DTOs que ya existen — no hay costo de mantenimiento adicional porque la documentación vive junto al código que describe.
+- En un sistema con validaciones custom (CUIT, dominio, fecha), documentar los formatos esperados directamente en el schema evita fricción en la integración.
+
+### Trade-offs
+- Agrega `@nestjs/swagger` como dependencia de producción. Mitigado: el bundle del backend no es un constraint relevante en este contexto.
+
+---
+
+## DECISIÓN 13: Validadores en dos capas — Funciones puras + Reactive Validators
+
+**Estado:** ✅ Aceptada
+
+### Decisión
+Implementar cada validador en dos artefactos independientes: una función pura (`isCuitValid(cuit: string): boolean`) y un Angular `ValidatorFn` que la consume (`cuitValidator(): ValidatorFn`).
+
+### Justificación
+La separación no es burocrática — resuelve un problema concreto de testabilidad. Una función pura se testea con una línea:
+
+```typescript
+expect(isCuitValid('20123456789')).toBe(true);
+```
+
+Un `ValidatorFn` requiere construir un `AbstractControl`, lo que arrastra Angular TestBed al test. Al aislar la lógica de validación del contrato de Angular, los tests de validadores son unitarios en el sentido estricto: sin framework, sin DOM, sin setup.
+
+El `ValidatorFn` es solo un adapter: toma el valor del control y delega a la función pura. Si la lógica cambia, cambia en un solo lugar y ambas capas lo reflejan.
+
+### Trade-offs
+- Dos archivos por validador en lugar de uno. Considerado aceptable dado el beneficio en testabilidad y la claridad de la separación.
+
+---
+
+## DECISIÓN 14: Seed de datos inicial
+
+**Estado:** ✅ Aceptada
+**Alternativas evaluadas:** Migraciones con datos, carga manual, sin seed
+
+### Decisión
+Implementar un `SeederService` que popula la base de datos con sujetos y automotores de ejemplo al levantar el sistema en modo desarrollo.
+
+### Justificación
+El seed no es comodidad, es una decisión de producto: el sistema debe ser evaluable desde el primer `docker compose up`. Sin datos iniciales, quien revisa el proyecto enfrenta una tabla vacía y tiene que construir el contexto antes de poder evaluar el comportamiento real de la app — paginación, búsqueda, edición, eliminación.
+
+El seed garantiza que el flujo crítico de la aplicación es observable sin fricción de setup. Es la diferencia entre un demo que funciona y uno que requiere instrucciones adicionales.
+
+### Trade-offs
+- El seed corre condicionado a `NODE_ENV !== 'production'` para evitar colisiones en entornos reales.
+
+---
+
+## DECISIÓN 15: Gestión de suscripciones — `DestroyRef` + `takeUntilDestroyed`
+
+**Estado:** ✅ Aceptada
+**Alternativas evaluadas:** `Subject` + `takeUntil`, `async` pipe, `ngOnDestroy` manual
+
+### Decisión
+Gestionar el ciclo de vida de las suscripciones RxJS con `DestroyRef` inyectado en el constructor y `takeUntilDestroyed(this.destroyRef)` en cada pipe.
+
+### Justificación
+El patrón clásico con `Subject` requiere declarar el subject, completarlo en `ngOnDestroy` e implementar la interfaz — tres puntos de código para resolver un único problema. Con `DestroyRef`, la intención queda en una línea donde ocurre la suscripción, no separada en un lifecycle hook distinto.
+
+Más importante: `takeUntilDestroyed` funciona en cualquier contexto de inyección — componentes, servicios, directivas — sin depender de `ngOnDestroy`. En un `FacadeService` que vive fuera del árbol de componentes, el patrón clásico requiere workarounds. Con `DestroyRef` es transparente.
+
+### Trade-offs
+- Requiere Angular 16+. En este proyecto con Angular 20, no hay restricción.
+
+---
+
+## DECISIÓN 16: Contrato de errores HTTP — 422 vs 400
+
+**Estado:** ✅ Aceptada
+
+### Decisión
+Diferenciar semánticamente dos categorías de error en la API:
+
+| Código | Categoría | Ejemplo |
+|---|---|---|
+| **422** Unprocessable Entity | Errores de validación de campos | CUIT inválido, dominio duplicado |
+| **400** Bad Request | Errores de lógica de negocio | `SUJETO_NOT_FOUND` |
+
+### Justificación
+HTTP 400 ("la request está mal formada") y HTTP 422 ("la request está bien formada pero no se puede procesar") no son sinónimos. Colapsarlos en un solo código obliga al cliente a parsear el body para entender qué clase de error recibió — lo que convierte el status code en decoración.
+
+Con la distinción implementada, el frontend puede ramificar en el interceptor sin inspeccionar el body: un 422 siempre tiene `fieldErrors` para mapear a controles del formulario; un 400 con `code: SUJETO_NOT_FOUND` dispara el modal de creación de sujeto. La lógica de UI queda determinada por el protocolo, no por strings arbitrarios del backend.
+
+### Trade-offs
+- Requiere disciplina en el backend para no mezclar códigos. Resuelto con el `ValidationExceptionFilter` que centraliza el mapeo en un único lugar.
+
+---
+
+## DECISIÓN 17: TypeORM `synchronize` — diferenciado por entorno
+
+**Estado:** ✅ Aceptada
+**Alternativas evaluadas:** `synchronize: true` siempre, migraciones desde el inicio
+
+### Decisión
+Configurar `synchronize: !isProduction` en TypeORM: creación automática de schema en desarrollo, schema inmutable en producción.
+
+### Justificación
+`synchronize: true` en producción es un riesgo operacional: un cambio en una entity puede traducirse en una ALTER TABLE o DROP COLUMN automático sobre datos reales. No es una posibilidad remota — es el comportamiento documentado.
+
+En desarrollo, la fricción de correr migraciones en cada iteración no aporta valor y ralentiza el ciclo. El tradeoff es asimétrico: el costo de `synchronize: true` en dev es cero, el costo en prod puede ser pérdida de datos.
+
+La configuración diferenciada por `NODE_ENV` resuelve ambos lados: velocidad en desarrollo, seguridad en producción. Cuando el proyecto escale a un entorno de staging o producción real, las migraciones de TypeORM (`typeorm migration:generate`) reemplazarían el synchronize sin cambios en el resto de la configuración.
+
+### Trade-offs
+- El schema de dev puede divergir del de producción si no se generan migraciones. Aceptable en el contexto del challenge donde no existe un entorno de producción real.
+
+---
+
 ## Resumen de decisiones
 
 | # | Área | Decisión | Descartado |
@@ -266,12 +385,18 @@ Esta es la ventaja real de un monorepo con workspace: no solo tener el código j
 | 3 | CSS | Tailwind CSS 3.x | SCSS custom |
 | 4 | State | Signals + Servicios | NgRx, SignalStore |
 | 5 | Forms | Reactive Forms | Template-driven |
-| 6 | Backend | NestJS 10 LTS | Express |
+| 6 | Backend | NestJS 11 LTS | Express |
 | 7 | ORM / DB | TypeORM + PostgreSQL 16 | SQLite, MongoDB |
 | 8 | Infra | Docker Compose | Kubernetes |
 | 9 | Estructura | Feature-based (Core/Shared/Features) | — |
 | 10 | Testing | Jest + Playwright (1 flujo E2E) | Cypress, cobertura total |
 | 11 | Repositorio | Monorepo sin Nx | Nx, repos separados |
+| 12 | API Docs | Swagger / OpenAPI | Postman collection |
+| 13 | Validadores | Funciones puras + Reactive adapters | ValidatorFn directo |
+| 14 | Seed | SeederService en dev | Carga manual |
+| 15 | Suscripciones | DestroyRef + takeUntilDestroyed | Subject + takeUntil |
+| 16 | Errores HTTP | 422 (campos) vs 400 (negocio) | 400 para todo |
+| 17 | TypeORM sync | synchronize por entorno | synchronize: true fijo |
 
 ---
 
