@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(mkdir -p config common/filters common/decorators validators sujetos/entities sujetos/dtos automotores/entities automotores/dtos)",
+      "Bash(touch config/database.config.ts config/constants.ts config/index.ts common/filters/validation-exception.filter.ts common/decorators/validation.decorator.ts validators/cuit.validator.ts validators/dominio.validator.ts validators/fecha.validator.ts validators/index.ts sujetos/entities/sujeto.entity.ts sujetos/dtos/create-sujeto.dto.ts sujetos/dtos/index.ts sujetos/sujetos.service.ts sujetos/sujetos.controller.ts sujetos/sujetos.module.ts automotores/entities/automotor.entity.ts automotores/dtos/create-automotor.dto.ts automotores/dtos/update-automotor.dto.ts automotores/dtos/index.ts automotores/automotores.service.ts automotores/automotores.controller.ts automotores/automotores.module.ts)",
+      "Bash(npm uninstall:*)",
+      "Bash(npx tsc:*)",
+      "Bash(node:*)",
+      "Bash(find C:UsersandreOneDriveEscritoriochallengechallenge-automotoresappsfrontend -type f -name *.html)"
+    ]
+  }
+}

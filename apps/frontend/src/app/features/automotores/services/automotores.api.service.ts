@@ -1,34 +1,44 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Automotor } from '../../../core/models';
+import {
+  Automotor,
+  CreateAutomotorPayload,
+  UpdateAutomotorPayload,
+  PaginatedAutomotores,
+} from '../../../core/models';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AutomotolesApiService {
-  private apiUrl = '/api/automotores';
+  private readonly apiUrl = '/api/automotores';
 
   constructor(private http: HttpClient) {}
 
-  getAutomotores(page: number = 1, limit: number = 10): Observable<any> {
-    return this.http.get<any>(this.apiUrl, {
+  /** GET /api/automotores?page=1&limit=10 */
+  getAutomotores(page: number = 1, limit: number = 10): Observable<PaginatedAutomotores> {
+    return this.http.get<PaginatedAutomotores>(this.apiUrl, {
       params: { page, limit },
     });
   }
 
+  /** GET /api/automotores/:dominio */
   getAutomotorByDominio(dominio: string): Observable<Automotor> {
     return this.http.get<Automotor>(`${this.apiUrl}/${dominio}`);
   }
 
-  createAutomotor(automotor: Partial<Automotor>): Observable<Automotor> {
-    return this.http.post<Automotor>(this.apiUrl, automotor);
+  /** POST /api/automotores */
+  createAutomotor(payload: CreateAutomotorPayload): Observable<Automotor> {
+    return this.http.post<Automotor>(this.apiUrl, payload);
   }
 
-  updateAutomotor(dominio: string, automotor: Partial<Automotor>): Observable<Automotor> {
-    return this.http.put<Automotor>(`${this.apiUrl}/${dominio}`, automotor);
+  /** PUT /api/automotores/:dominio */
+  updateAutomotor(dominio: string, payload: UpdateAutomotorPayload): Observable<Automotor> {
+    return this.http.put<Automotor>(`${this.apiUrl}/${dominio}`, payload);
   }
 
+  /** DELETE /api/automotores/:dominio */
   deleteAutomotor(dominio: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${dominio}`);
   }

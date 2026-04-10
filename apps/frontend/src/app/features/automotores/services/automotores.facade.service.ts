@@ -3,7 +3,12 @@ import { Observable, EMPTY } from 'rxjs';
 import { tap, catchError, finalize } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { Automotor, ApiErrorInterface } from '../../../core/models';
+import {
+  Automotor,
+  ApiErrorInterface,
+  CreateAutomotorPayload,
+  UpdateAutomotorPayload,
+} from '../../../core/models';
 import { AutomotolesApiService } from './automotores.api.service';
 import { AutomotoresStateService } from './automotores.state.service';
 
@@ -21,11 +26,7 @@ export class AutomotoresFacadeService {
   error = this.state.error;
   filteredAutomotores = this.state.filteredAutomotores;
 
-  constructor() {
-    this.loadAutomotores();
-  }
-
-  loadAutomotores(page: number = 1, limit: number = 10) {
+  loadAutomotores(page: number = 1, limit: number = 10): void {
     this.state.setLoading(true);
     this.state.setError(null);
 
@@ -33,7 +34,7 @@ export class AutomotoresFacadeService {
       .getAutomotores(page, limit)
       .pipe(
         tap((response) => {
-          this.state.setAutomotores(response.data || []);
+          this.state.setAutomotores(response.data);
           this.state.setCurrentPage(page);
         }),
         catchError((error: ApiErrorInterface) => {
@@ -50,11 +51,9 @@ export class AutomotoresFacadeService {
     return this.api.getAutomotorByDominio(dominio);
   }
 
-  createAutomotor(automotor: Partial<Automotor>): Observable<Automotor> {
-    return this.api.createAutomotor(automotor).pipe(
-      tap((newAuto) => {
-        this.state.addAutomotor(newAuto);
-      }),
+  createAutomotor(payload: CreateAutomotorPayload): Observable<Automotor> {
+    return this.api.createAutomotor(payload).pipe(
+      tap((newAuto) => this.state.addAutomotor(newAuto)),
       catchError((error: ApiErrorInterface) => {
         this.state.setError(error);
         throw error;
@@ -62,14 +61,9 @@ export class AutomotoresFacadeService {
     );
   }
 
-  updateAutomotor(
-    dominio: string,
-    automotor: Partial<Automotor>,
-  ): Observable<Automotor> {
-    return this.api.updateAutomotor(dominio, automotor).pipe(
-      tap((updated) => {
-        this.state.updateAutomotor(updated);
-      }),
+  updateAutomotor(dominio: string, payload: UpdateAutomotorPayload): Observable<Automotor> {
+    return this.api.updateAutomotor(dominio, payload).pipe(
+      tap((updated) => this.state.updateAutomotor(updated)),
       catchError((error: ApiErrorInterface) => {
         this.state.setError(error);
         throw error;
@@ -79,9 +73,7 @@ export class AutomotoresFacadeService {
 
   deleteAutomotor(dominio: string): Observable<void> {
     return this.api.deleteAutomotor(dominio).pipe(
-      tap(() => {
-        this.state.removeAutomotor(dominio);
-      }),
+      tap(() => this.state.removeAutomotor(dominio)),
       catchError((error: ApiErrorInterface) => {
         this.state.setError(error);
         throw error;
@@ -89,11 +81,11 @@ export class AutomotoresFacadeService {
     );
   }
 
-  setSearchTerm(term: string) {
+  setSearchTerm(term: string): void {
     this.state.setSearchTerm(term);
   }
 
-  reset() {
+  reset(): void {
     this.state.reset();
   }
 }

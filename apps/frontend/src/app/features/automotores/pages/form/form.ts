@@ -9,11 +9,11 @@ import {
 import { CommonModule } from '@angular/common';
 import {
   ReactiveFormsModule,
-  FormsModule,
   FormBuilder,
   FormGroup,
   Validators,
   AbstractControl,
+  FormsModule,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -39,12 +39,12 @@ import {
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    FormsModule,
     ButtonModule,
     InputTextModule,
     CardModule,
     SkeletonModule,
     DialogModule,
+    FormsModule,
   ],
   providers: [],
   templateUrl: './form.html',
@@ -101,6 +101,14 @@ export class FormComponent implements OnInit {
     });
   }
 
+  ctrl(name: string): AbstractControl {
+    return this.form.get(name)!;
+  }
+
+  charCount(name: string): number {
+    return this.ctrl(name).value?.length ?? 0;
+  }
+
   private checkIfEditing() {
     this.route.paramMap.subscribe((params) => {
       const dominio = params.get('dominio');
@@ -137,18 +145,10 @@ export class FormComponent implements OnInit {
     });
   }
 
-  ctrl(name: string): AbstractControl {
-    return this.form.get(name)!;
-  }
-
-  charCount(name: string): number {
-    return this.ctrl(name).value?.length ?? 0;
-  }
-
   onSubmit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
 
@@ -205,7 +205,9 @@ export class FormComponent implements OnInit {
         }
       });
 
+      const firstField = Object.keys(error.fieldErrors)[0];
       const firstMessage = Object.values(error.fieldErrors)[0] as string;
+
       this.messageService.add({
         severity: 'error',
         summary: 'Error de validación',
