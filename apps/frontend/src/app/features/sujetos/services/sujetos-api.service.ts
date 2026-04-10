@@ -1,23 +1,25 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Sujeto } from '../../../core/models';
+import { Sujeto, CreateSujetoPayload } from '../../../core/models';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SujetosApiService {
-  private apiUrl = '/api/sujetos';
+  private readonly apiUrl = '/api/sujetos';
 
   constructor(private http: HttpClient) {}
 
-  getSujetosByCuit(cuit: string): Observable<Sujeto> {
+  /** GET /api/sujetos/by-cuit?cuit=20123456789 */
+  getSujetoByCuit(cuit: string): Observable<Sujeto> {
     return this.http.get<Sujeto>(`${this.apiUrl}/by-cuit`, {
       params: { cuit },
     });
   }
 
-  createSujeto(sujeto: Partial<Sujeto>): Observable<Sujeto> {
-    return this.http.post<Sujeto>(this.apiUrl, sujeto);
+  /** POST /api/sujetos */
+  createSujeto(payload: CreateSujetoPayload): Observable<Sujeto> {
+    return this.http.post<Sujeto>(this.apiUrl, payload);
   }
 }

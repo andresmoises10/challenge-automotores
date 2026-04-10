@@ -12,7 +12,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
       POSTGRES_DB: ${DB_NAME:-automotores_db}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -20,6 +20,22 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - automotores-network
+
+  # ============================================
+  # pgAdmin 4
+  # ============================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: automotores-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@admin.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres
     networks:
       - automotores-network
 
@@ -35,13 +51,13 @@ services:
       NODE_ENV: ${NODE_ENV:-development}
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_USER: ${DB_USER:-postgres}
+      DB_USERNAME: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       DB_NAME: ${DB_NAME:-automotores_db}
-      API_PORT: 3000
-      API_URL: http://localhost:3000
+      API_PORT: 3030
+      API_URL: http://localhost:3030
     ports:
-      - "3000:3000"
+      - "3030:3030"
     depends_on:
       postgres:
         condition: service_healthy
@@ -62,7 +78,7 @@ services:
     container_name: automotores-frontend
     environment:
       NODE_ENV: ${NODE_ENV:-development}
-      ANGULAR_API_URL: ${ANGULAR_API_URL:-http://localhost:3000/api}
+      ANGULAR_API_URL: ${ANGULAR_API_URL:-http://localhost:3030/api}
     ports:
       - "4200:4200"
     depends_on:

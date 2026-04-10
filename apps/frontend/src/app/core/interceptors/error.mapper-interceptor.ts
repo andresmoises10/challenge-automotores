@@ -4,7 +4,7 @@ import {ApiErrorInterface} from '../models';
 export const mapHttpError = (error: HttpErrorResponse): ApiErrorInterface => {
   if (error.status === 422) {
     return {
-      code: 'VALIDATION_ERROR',
+      code: error.error?.code || 'VALIDATION_ERROR',
       message: error.error?.message || 'Validación fallida.',
       userMessage: 'Revisa los datos ingresados.',
       fieldErrors: error.error?.fieldErrors || {},
@@ -24,10 +24,14 @@ export const mapHttpError = (error: HttpErrorResponse): ApiErrorInterface => {
   }
 
   if (error.status === 400) {
+    const code = error.error?.code || 'BAD_REQUEST';
+    const isSujetoNotFound = code === 'SUJETO_NOT_FOUND';
     return {
-      code: 'BAD_REQUEST',
+      code,
       message: error.error?.message || 'Solicitud inválida.',
-      userMessage: error.error?.userMessage || 'Solicitud inválida.',
+      userMessage: isSujetoNotFound
+        ? 'El CUIT ingresado no existe como sujeto en el sistema.'
+        : (error.error?.userMessage || 'Solicitud inválida.'),
       status: 400,
       timestamp: new Date().toISOString(),
     };
