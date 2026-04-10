@@ -10,7 +10,9 @@
       "Bash(find C:UsersandreOneDriveEscritoriochallengechallenge-automotoresappsfrontend -type f -name *.html)",
       "Bash(find C:/Users/andre/OneDrive/Escritorio/challenge/challenge-automotores -name *seed* -o -name *seeder*)",
       "Bash(docker exec:*)",
-      "Bash(curl -s \"http://localhost:4200/api/automotores?page=1&limit=10\")"
+      "Bash(curl -s \"http://localhost:4200/api/automotores?page=1&limit=10\")",
+      "Bash(find C:UsersandreOneDriveEscritoriochallengechallenge-automotores -maxdepth 3 -type f \\\\\\(-name README* -o -name *.md \\\\\\) ! -path */node_modules/*)",
+      "Bash(find C:/Users/andre/OneDrive/Escritorio/challenge/challenge-automotores -name *.spec.ts -o -name *.e2e.ts)"
     ]
   }
 }

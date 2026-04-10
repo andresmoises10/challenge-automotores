@@ -4,7 +4,7 @@
 
 - **Frontend:** Angular 20 LTS + PrimeNG 20 + Tailwind 3.x
 - **Backend:** NestJS 10 LTS + TypeORM + PostgreSQL 16
-- **Testing:** Jasmine/Karma (FE) + Jest (BE) + Playwright (E2E)
+- **Testing:** Jasmine/Karma (FE) + Jest (BE)
 - **Containerization:** Docker + Docker Compose
 
 ---
@@ -224,7 +224,6 @@ Implementadas como:
 
 - **Unit:** Validadores + servicios
 - **Component:** Listado (render, search, pagination) + Form (validación, 422)
-- **E2E:** Playwright flujo crítico (crear automotor + reasignación CUIT)
 
 ---
 
@@ -251,7 +250,6 @@ npm run start:dev
 ```bash
 npm run test:fe      # Frontend
 npm run test:be      # Backend
-npm run e2e         # E2E Playwright
 ```
 
 ---
@@ -260,7 +258,6 @@ npm run e2e         # E2E Playwright
 
 - Node 20+, npm 10+, Docker Desktop
 - PostgreSQL 16 (en docker, no requiere instalación local)
-- Browser Chrome/Edge para Playwright
 - Desarrollo en Windows/Mac/Linux
 
 ---

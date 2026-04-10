@@ -98,7 +98,8 @@ challenge-automotores/
 │           │   ├── automotores/  # Listado + formulario CRUD
 │           │   └── sujetos/      # Servicio de consulta/alta de sujetos
 │           └── shared/           # Validators reutilizables
-├── docs/                         # Decisiones técnicas y escalabilidad
+├── DECISION_LOG.md               # Decisiones técnicas
+├── ESCALABILIDAD-FRONT.md        # Plan de escalabilidad frontend
 ├── docker-compose.yml
 └── .env.example
 ```
@@ -139,7 +140,7 @@ Si al crear un automotor el CUIT no existe en el sistema, el frontend muestra un
 
 ## Decisiones técnicas relevantes
 
-Ver [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md) para el detalle completo. Puntos clave:
+Ver [`DECISION_LOG.md`](DECISION_LOG.md) para el detalle completo. Puntos clave:
 
 - **OnPush + Signals** en todos los componentes para minimizar ciclos de detección de cambios.
 - **Lazy loading** por feature (`automotores`, `sujetos`) para reducir el bundle inicial.

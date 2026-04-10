@@ -177,25 +177,23 @@ src/app/
 
 ---
 
-## DECISIÓN 10: Testing — Unit + Integration + E2E (1 flujo crítico)
+## DECISIÓN 10: Testing — Unit + Integration
 
-**Estado:** ✅ Aceptada  
-**Alternativas evaluadas:** Cobertura E2E completa, Cypress
+**Estado:** ✅ Aceptada
+**Alternativas evaluadas:** Cobertura E2E con Cypress o Playwright
 
 ### Decisión
-Jest para unit/integration en backend. Jasmine/Karma para unit en frontend. Playwright para 1 flujo E2E crítico (alta de automotor).
+Jest para unit/integration en backend. Jasmine/Karma para unit en frontend. E2E descartado por tiempo.
 
 | Nivel | Herramienta | Qué se testea |
 |---|---|---|
 | Unit | Jest / Jasmine | Validators, services, mappers — lógica pura |
 | Integration | Jest + Supertest | API endpoints críticos contra DB de test |
-| E2E | Playwright | Flujo completo: alta de automotor con validaciones |
 
 ### Justificación
 - Validators como funciones puras: testables sin Angular TestBed ni DOM.
 - Repository mockeado en service tests: lógica de negocio sin DB real.
-- 1 flujo E2E: el alta de automotor es el camino crítico. El ROI de cobertura E2E completa no se justifica en 48h.
-- Playwright sobre Cypress: API moderna, soporte nativo Angular, más rápido en CI.
+- E2E descartado: el flujo crítico (alta de automotor) quedó fuera del scope por tiempo. En un proyecto real sería el primer test a agregar — el flujo de alta con reasignación de CUIT es exactamente el tipo de caso que un E2E cubre mejor que cualquier unit test.
 
 ---
 
@@ -389,7 +387,7 @@ La configuración diferenciada por `NODE_ENV` resuelve ambos lados: velocidad en
 | 7 | ORM / DB | TypeORM + PostgreSQL 16 | SQLite, MongoDB |
 | 8 | Infra | Docker Compose | Kubernetes |
 | 9 | Estructura | Feature-based (Core/Shared/Features) | — |
-| 10 | Testing | Jest + Playwright (1 flujo E2E) | Cypress, cobertura total |
+| 10 | Testing | Jest + Jasmine/Karma (unit + integration) | Cypress, Playwright, cobertura E2E |
 | 11 | Repositorio | Monorepo sin Nx | Nx, repos separados |
 | 12 | API Docs | Swagger / OpenAPI | Postman collection |
 | 13 | Validadores | Funciones puras + Reactive adapters | ValidatorFn directo |
